@@ -294,7 +294,7 @@ endif
 
 # flags
 CPPFLAGS += -Os -Wall -fno-exceptions -ffunction-sections -fdata-sections
-CPPFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
+CPPFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -fno-threadsafe-statics
 CPPFLAGS += -mmcu=$(BOARD_BUILD_MCU)
 CPPFLAGS += -DF_CPU=$(BOARD_BUILD_FCPU) -DARDUINO=$(ARDUINOCONST)
 CPPFLAGS += -DUSB_VID=$(BOARD_USB_VID) -DUSB_PID=$(BOARD_USB_PID)
@@ -339,12 +339,14 @@ upload: target
 	@test 0 -eq $(SERIALDEVGUESS) || { \
 		echo "*GUESSING* at serial device:" $(SERIALDEV); \
 		echo; }
-ifeq "$(BOARD_BOOTLOADER_PATH)" "caterina"
+
+# kick the chip into the bootloader, especially required for Leonardo
+# see https://nicholaskell.wordpress.com/tag/leonardo/
+
 	stty $(STTYFARG) $(SERIALDEV) speed 1200
-	sleep 1
-else
 	stty $(STTYFARG) $(SERIALDEV) hupcl
-endif
+	sleep 2
+
 	$(AVRDUDE) $(AVRDUDEFLAGS) -U flash:w:$(TARGET).hex:i
 
 clean:
